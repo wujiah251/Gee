@@ -36,13 +36,13 @@ func main() {
 	})
 	r.GET("/students", func(c *gee.Context) {
 		c.HTML(http.StatusOK, "arr.tmpl", gee.H{
-			"title":  "gee",
+			"title":  "geecache",
 			"stuArr": [2]*student{stu1, stu2},
 		})
 	})
 	r.GET("/date", func(c *gee.Context) {
 		c.HTML(http.StatusOK, "custom_func.tmpl", gee.H{
-			"title": "gee",
+			"title": "geecache",
 			"now":   time.Date(2019, 8, 17, 0, 0, 0, 0, time.UTC),
 		})
 	})
@@ -54,7 +54,7 @@ func main() {
 $ curl http://localhost:9999/date
 <html>
 <body>
-    <p>hello, gee</p>
+    <p>hello, geecache</p>
     <p>Date: 2019-08-17</p>
 </body>
 </html>
@@ -65,7 +65,7 @@ $ curl http://localhost:9999/date
 $ curl http://localhost:9999/students
 <html>
 <body>
-    <p>hello, gee</p>
+    <p>hello, geecache</p>
     <p>0: Geektutu is 20 years old</p>
     <p>1: Jack is 22 years old</p>
 </body>
