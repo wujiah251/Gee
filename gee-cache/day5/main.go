@@ -4,8 +4,9 @@ import (
 	"Gee/gee-cache/day5/geecache"
 	"flag"
 	"fmt"
-	"log"
 	"net/http"
+
+	"github.com/sirupsen/logrus"
 )
 
 /*
@@ -22,7 +23,7 @@ var db = map[string]string{
 }
 
 func init() {
-	log.SetFlags(log.Lshortfile)
+	logrus.SetLevel(logrus.InfoLevel)
 }
 
 func main() {
@@ -53,7 +54,7 @@ func main() {
 }
 
 func getterFunc(key string) ([]byte, error) {
-	log.Println("[SlowDB] search key", key)
+	logrus.Println("[SlowDB] search key", key)
 	if v, ok := db[key]; ok {
 		return []byte(v), nil
 	}
@@ -79,14 +80,16 @@ func startAPIServer(apiAddr string, gee *geecache.Group) {
 			w.Header().Set("Content-Type", "application/octet-stream")
 			w.Write(view.ByteSlice())
 		}))
-	log.Println("fonted server is running at", apiAddr)
-	log.Fatal(http.ListenAndServe(apiAddr[7:], nil))
+	logrus.Println("fonted server is running at", apiAddr)
+	logrus.Fatal(http.ListenAndServe(apiAddr[7:], nil))
+	logrus.Infof("Start ApiServer,api addr = %v\n", apiAddr)
 }
 
 func startCacheServer(addr string, addrs []string, gee *geecache.Group) {
 	peers := geecache.NewHTTPPool(addr)
-	peers.Set(addrs...) // 添加节点地址
-	gee.RegisterPeers(peers)
-	log.Println("geecache is running at", addr)
-	log.Fatal(http.ListenAndServe(addr[7:], peers))
+	peers.Set(addrs...)      // 添加节点地址
+	gee.RegisterPeers(peers) // 注册客户端
+	logrus.Println("geecache is running at", addr)
+	logrus.Fatal(http.ListenAndServe(addr[7:], peers))
+	logrus.Infof("Start CacheServer, addr=%v\n", addr)
 }

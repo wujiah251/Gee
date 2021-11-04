@@ -2,6 +2,7 @@ package geecache
 
 import (
 	"Gee/gee-cache/day5/geecache/consistenthash"
+
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -59,6 +60,7 @@ func (p *HTTPPool) Log(format string, v ...interface{}) {
 	log.Printf("[Server %s] %s", p.self, fmt.Sprintf(format, v...))
 }
 
+// 处理HTTP请求的接口
 func (p *HTTPPool) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if !strings.HasPrefix(r.URL.Path, p.basePath) {
 		panic("HTTPPool serving unexpected path: " + r.URL.Path)

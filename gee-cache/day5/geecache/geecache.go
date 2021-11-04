@@ -2,8 +2,9 @@ package geecache
 
 import (
 	"fmt"
-	"log"
 	"sync"
+
+	"github.com/sirupsen/logrus"
 )
 
 //是
@@ -23,7 +24,7 @@ type Group struct {
 	name      string
 	getter    Getter
 	mainCache cache
-	peers PeerPicker // 节点获取句柄
+	peers     PeerPicker // 节点获取句柄
 }
 
 var (
@@ -63,36 +64,43 @@ func GetGroup(name string) *Group {
 	return g
 }
 
+// 先读取mainCache
+// 读取成功返回
+// 读取失败则load
 func (g *Group) Get(key string) (ByteView, error) {
 	if key == "" {
 		return ByteView{}, fmt.Errorf("key is required")
 	}
 
 	if v, ok := g.mainCache.get(key); ok {
-		log.Println("[GeeCache] hit")
+		// 缓存命中，直接返回
+		logrus.Infof("[%s mainCache get key]\n", g.name)
 		return v, nil
+	} else {
+		logrus.Println("[GeeCache]miss key=", key)
 	}
 	return g.load(key)
 }
 
 // 注册节点获取句柄
-func (g*Group)RegisterPeers(peers PeerPicker){
-	if g.peers != nil{
+func (g *Group) RegisterPeers(peers PeerPicker) {
+	if g.peers != nil {
 		panic("RegisterPeerPicker called more than once")
 	}
 	g.peers = peers
 }
 
-
 func (g *Group) load(key string) (value ByteView, err error) {
-	if g.peers != nil{
-		if peer, ok := g.peers.PeerPick(key);ok{
-			if value, err = g.getFromPeer(peer,key);err ==nil{
-				return value,nil
+	// 先尝试从远程获取key-value
+	if g.peers != nil {
+		if peer, ok := g.peers.PeerPick(key); ok {
+			if value, err = g.getFromPeer(peer, key); err == nil {
+				return value, nil
 			}
-			log.Println("[GeeCache]Failed to get from peer",err)
+			logrus.Infof("[GeeCache]Failed to get from peer,err=%v\n", err)
 		}
 	}
+	// 本地读取key-value，实际上是调用getter
 	return g.getLocally(key)
 }
 
@@ -110,10 +118,10 @@ func (g *Group) populateCache(key string, value ByteView) {
 	g.mainCache.add(key, value)
 }
 
-func (g *Group)getFromPeer(peer PeerGetter,key string)(ByteView,error){
-	bytes, err := peer.Get(g.name,key)
-	if err != nil{
-		return ByteView{},err
+func (g *Group) getFromPeer(peer PeerGetter, key string) (ByteView, error) {
+	bytes, err := peer.Get(g.name, key)
+	if err != nil {
+		return ByteView{}, err
 	}
-	return ByteView{b:bytes},nil
+	return ByteView{b: bytes}, nil
 }
