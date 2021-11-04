@@ -1,7 +1,7 @@
 package main
 
 import (
-	"Gee/gee-cache/day4/geecache"
+	"Gee/gee-cache/day7/geecache"
 	"fmt"
 	"log"
 	"net/http"
