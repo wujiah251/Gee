@@ -32,7 +32,7 @@ const (
 	Disabled
 )
 
-func SerLevel(level int) {
+func SetLevel(level int) {
 	mu.Lock()
 	defer mu.Unlock()
 	for _, logger := range loggers {

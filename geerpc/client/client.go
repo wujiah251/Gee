@@ -1,7 +1,8 @@
-package geerpc
+package client
 
 import (
 	"Gee/geerpc/codec"
+	"Gee/geerpc/server"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -27,7 +28,7 @@ func (call *Call) done() {
 
 type Client struct {
 	cc       codec.Codec
-	opt      *Option
+	opt      *server.Option
 	sending  sync.Mutex // protect following
 	header   codec.Header
 	mu       sync.Mutex // protect following
@@ -116,7 +117,7 @@ func (client *Client) receive() {
 	client.terminateCalls(err)
 }
 
-func NewClient(conn net.Conn, opt *Option) (*Client, error) {
+func NewClient(conn net.Conn, opt *server.Option) (*Client, error) {
 	newCodecFunc := codec.NewCodecFuncMap[opt.CodecType]
 	if newCodecFunc == nil {
 		err := fmt.Errorf("invalid codec type %s", opt.CodecType)
@@ -132,7 +133,7 @@ func NewClient(conn net.Conn, opt *Option) (*Client, error) {
 	return newClientCodec(newCodecFunc(conn), opt), nil
 }
 
-func newClientCodec(cc codec.Codec, opt *Option) *Client {
+func newClientCodec(cc codec.Codec, opt *server.Option) *Client {
 	client := &Client{
 		seq:     1,
 		cc:      cc,
@@ -143,22 +144,22 @@ func newClientCodec(cc codec.Codec, opt *Option) *Client {
 	return client
 }
 
-func parseOptions(opts ...*Option) (*Option, error) {
+func parseOptions(opts ...*server.Option) (*server.Option, error) {
 	if len(opts) == 0 || opts[0] == nil {
-		return DefaultOption, nil
+		return server.DefaultOption, nil
 	}
 	if len(opts) != 1 {
 		return nil, errors.New("number of options is more than 1")
 	}
 	opt := opts[0]
-	opt.MagicNumber = DefaultOption.MagicNumber
+	opt.MagicNumber = server.DefaultOption.MagicNumber
 	if opt.CodecType == "" {
-		opt.CodecType = DefaultOption.CodecType
+		opt.CodecType = server.DefaultOption.CodecType
 	}
 	return opt, nil
 }
 
-func Dial(network, address string, opts ...*Option) (client *Client, err error) {
+func Dial(network, address string, opts ...*server.Option) (client *Client, err error) {
 	opt, err := parseOptions(opts...)
 	if err != nil {
 		return nil, err

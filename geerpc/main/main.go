@@ -1,7 +1,8 @@
 package main
 
 import (
-	"Gee/geerpc"
+	"Gee/geerpc/client"
+	"Gee/geerpc/server"
 	"fmt"
 	"log"
 	"net"
@@ -16,7 +17,7 @@ func startServer(addr chan string) {
 	}
 	log.Println("start rpc server on", l.Addr())
 	addr <- l.Addr().String()
-	geerpc.Accept(l)
+	server.Accept(l)
 }
 
 func init() {
@@ -26,7 +27,7 @@ func init() {
 func main() {
 	addr := make(chan string)
 	go startServer(addr)
-	client, _ := geerpc.Dial("tcp", <-addr)
+	client, _ := client.Dial("tcp", <-addr)
 	defer func() { _ = client.Close() }()
 
 	time.Sleep(time.Second)
